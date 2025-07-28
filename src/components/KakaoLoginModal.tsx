@@ -17,9 +17,6 @@ const KakaoLoginModal: React.FC<KakaoLoginModalProps> = ({
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "kakao",
-        options: {
-          redirectTo: "https://muru-eight.vercel.app/auth/callback",
-        },
       });
 
       if (error) {
