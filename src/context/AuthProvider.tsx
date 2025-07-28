@@ -1,23 +1,10 @@
-import { createContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase/SupabaseClient";
 import type { Session, User } from "@supabase/supabase-js";
 import type { ReactNode } from "react";
+import { AuthContext } from "./AuthContext";
 
-// 1. Context 타입 정의
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-}
-
-// 2. 초기값 설정
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  loading: true,
-});
-
-// 3. Provider 정의
+// Provider 정의
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);

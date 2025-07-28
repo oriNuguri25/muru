@@ -1,11 +1,22 @@
 import { useState } from "react";
 import KakaoLoginModal from "./KakaoLoginModal";
+import { useAuth } from "../context/useAuth";
+import { supabase } from "../lib/supabase/SupabaseClient";
 
 const Header = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user } = useAuth();
 
   const handleLoginClick = () => {
     setIsModalOpen(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("로그아웃 중 오류가 발생했습니다:", error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -33,10 +44,10 @@ const Header = () => {
             </div>
 
             <button
-              onClick={handleLoginClick}
+              onClick={user ? handleLogout : handleLoginClick}
               className="bg-purple-400 text-white px-6 py-2 rounded-md hover:bg-purple-500 transition-colors font-medium shadow-lg"
             >
-              Login
+              {user ? "로그아웃" : "로그인"}
             </button>
           </div>
         </div>

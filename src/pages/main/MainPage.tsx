@@ -1,6 +1,36 @@
+import { useState } from "react";
 import Header from "../../components/Header";
+import KakaoLoginModal from "../../components/KakaoLoginModal";
+import { useAuth } from "../../context/useAuth";
 
 const MainPage = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user } = useAuth();
+
+  const handleLeftButtonClick = () => {
+    if (user) {
+      // 로그인된 사용자: 실제 기능 실행
+      console.log("아이 맞춤 학습 자료 생성 기능 실행");
+    } else {
+      // 로그인되지 않은 사용자: 로그인 모달 표시
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleRightButtonClick = () => {
+    if (user) {
+      // 로그인된 사용자: 실제 기능 실행
+      console.log("아이 맞춤 이미지 자료 생성 기능 실행");
+    } else {
+      // 로그인되지 않은 사용자: 로그인 모달 표시
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
       {/* 헤더 */}
@@ -17,14 +47,23 @@ const MainPage = () => {
         </div>
 
         <div className="flex justify-center space-x-6">
-          <button className="bg-purple-400 text-white px-8 py-4 rounded-2xl hover:bg-purple-500 transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+          <button
+            onClick={handleLeftButtonClick}
+            className="bg-purple-400 text-white px-8 py-4 rounded-2xl hover:bg-purple-500 transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
             아이 맞춤 학습 자료 생성
           </button>
-          <div className="bg-white text-purple-400 border-2 border-purple-400 px-8 py-4 rounded-2xl hover:bg-purple-400 hover:text-white transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+          <button
+            onClick={handleRightButtonClick}
+            className="bg-white text-purple-400 border-2 border-purple-400 px-8 py-4 rounded-2xl hover:bg-purple-400 hover:text-white transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
             아이 맞춤 이미지 자료 생성
-          </div>
+          </button>
         </div>
       </div>
+
+      {/* 카카오 로그인 모달 */}
+      <KakaoLoginModal isOpen={isModalOpen} onClose={handleCloseModal} />
     </div>
   );
 };
