@@ -18,9 +18,7 @@ const KakaoLoginModal: React.FC<KakaoLoginModalProps> = ({
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "kakao",
         options: {
-          redirectTo: import.meta.env.VITE_PUBLIC_URL
-            ? `https://${import.meta.env.VITE_PUBLIC_URL}/auth/callback`
-            : "http://localhost:5173/auth/callback",
+          redirectTo: "https://muru-eight.vercel.app/auth/callback",
         },
       });
 
