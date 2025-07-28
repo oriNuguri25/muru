@@ -27,19 +27,30 @@ export default function AuthRedirectPage() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      const redirectTo =
-        new URLSearchParams(window.location.search).get("redirect") || "/";
-
       if (session) {
-        navigate(redirectTo, { replace: true });
+        // 로그인 성공 시 사용자 프로필 확인
+        const { data: profile, error } = await supabase
+          .from("user_profile")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (error || !profile) {
+          // 프로필이 없으면 상세 정보 입력 페이지로 이동
+          navigate("/auth/detail", { replace: true });
+        } else {
+          // 프로필이 있으면 메인 페이지로 이동
+          navigate("/", { replace: true });
+        }
       } else {
+        // 로그인 실패 시 메인 페이지로 이동
         console.warn("No session found");
         navigate("/", { replace: true });
       }
     };
 
     doRedirect();
-  }, []);
+  }, [navigate]);
 
   return <div></div>;
 }

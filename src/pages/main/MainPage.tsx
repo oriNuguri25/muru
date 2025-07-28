@@ -49,13 +49,13 @@ const MainPage = () => {
         <div className="flex justify-center space-x-6">
           <button
             onClick={handleLeftButtonClick}
-            className="bg-purple-400 text-white px-8 py-4 rounded-2xl hover:bg-purple-500 transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            className="bg-purple-400 text-white px-8 py-4 rounded-2xl hover:bg-purple-500 transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 cursor-pointer"
           >
             아이 맞춤 학습 자료 생성
           </button>
           <button
             onClick={handleRightButtonClick}
-            className="bg-white text-purple-400 border-2 border-purple-400 px-8 py-4 rounded-2xl hover:bg-purple-400 hover:text-white transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            className="bg-white text-purple-400 border-2 border-purple-400 px-8 py-4 rounded-2xl transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 cursor-pointer"
           >
             아이 맞춤 이미지 자료 생성
           </button>

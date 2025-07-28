@@ -45,7 +45,7 @@ const Header = () => {
 
             <button
               onClick={user ? handleLogout : handleLoginClick}
-              className="bg-purple-400 text-white px-6 py-2 rounded-md hover:bg-purple-500 transition-colors font-medium shadow-lg"
+              className="bg-purple-400 text-white px-6 py-2 rounded-md hover:bg-purple-500 transition-colors font-medium shadow-lg cursor-pointer"
             >
               {user ? "로그아웃" : "로그인"}
             </button>
