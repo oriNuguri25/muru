@@ -31,7 +31,7 @@ const AuthDetailPage = () => {
         user_id: user.id,
         name: name.trim(),
         email: user.email,
-        user_type: userType,
+        type: userType,
       });
 
       if (error) {
