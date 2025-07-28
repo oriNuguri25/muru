@@ -1,6 +1,6 @@
 import React from "react";
 import KakaoIcon from "../../public/assets/kakao.svg?react";
-import { supabase } from "../lib/supabase";
+import { KakaoLogin } from "../lib/supabase/KakaoLogin";
 
 interface KakaoLoginModalProps {
   isOpen: boolean;
@@ -12,25 +12,6 @@ const KakaoLoginModal: React.FC<KakaoLoginModalProps> = ({
   onClose,
 }) => {
   if (!isOpen) return null;
-
-  const handleKakaoLogin = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "kakao",
-      });
-
-      if (error) {
-        console.error("카카오 로그인 오류:", error);
-        alert("로그인 중 오류가 발생했습니다.");
-      } else {
-        console.log("카카오 로그인 성공:", data);
-        onClose();
-      }
-    } catch (error) {
-      console.error("카카오 로그인 예외:", error);
-      alert("로그인 중 오류가 발생했습니다.");
-    }
-  };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -49,7 +30,7 @@ const KakaoLoginModal: React.FC<KakaoLoginModalProps> = ({
 
           <div className="space-y-4">
             <button
-              onClick={handleKakaoLogin}
+              onClick={() => KakaoLogin()}
               className="w-full bg-yellow-400 text-black px-6 py-3 rounded-md hover:bg-yellow-500 transition-colors font-medium shadow-lg flex items-center justify-center space-x-2"
             >
               <KakaoIcon className="w-6 h-6" />
