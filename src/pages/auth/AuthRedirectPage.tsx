@@ -1,10 +1,7 @@
 import { supabase } from "../../lib/supabase/SupabaseClient";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 export default function AuthRedirectPage() {
-  const navigate = useNavigate();
-
   useEffect(() => {
     const doRedirect = async () => {
       const hash = window.location.hash;
@@ -20,6 +17,12 @@ export default function AuthRedirectPage() {
           access_token: access_token ? "present" : "missing",
           refresh_token: refresh_token ? "present" : "missing",
         });
+
+        // access_token을 localStorage에 저장
+        if (access_token) {
+          localStorage.setItem("access_token", access_token);
+          console.log("Access token saved to localStorage");
+        }
 
         // hash 클리어
         window.location.hash = "";
@@ -43,23 +46,22 @@ export default function AuthRedirectPage() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      // URL 검색 파라미터에서 redirect 값을 가져오거나, 기본값으로 루트 페이지 사용
-      const urlParams = new URLSearchParams(window.location.search);
-      const redirectTo = urlParams.get("redirect") || "/";
+      // BASE_URL 또는 localhost:5173으로 리다이렉트
+      const redirectUrl = import.meta.env.VITE_BASE_URL;
 
       if (session) {
-        console.log("Session found, redirecting to:", redirectTo);
-        // 루트 페이지로 명시적으로 이동
-        navigate(redirectTo, { replace: true });
+        console.log("Session found, redirecting to:", redirectUrl);
+        // 외부 URL로 리다이렉트 (히스토리 교체)
+        window.location.replace(redirectUrl);
       } else {
-        console.warn("No session found, redirecting to root");
-        // 세션이 없어도 루트 페이지로 이동
-        navigate("/", { replace: true });
+        console.warn("No session found, redirecting to:", redirectUrl);
+        // 세션이 없어도 리다이렉트 (히스토리 교체)
+        window.location.replace(redirectUrl);
       }
     };
 
     doRedirect();
-  }, [navigate]);
+  }, []);
 
   return <div>인증 처리 중...</div>;
 }
