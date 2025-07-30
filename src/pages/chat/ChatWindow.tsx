@@ -217,6 +217,30 @@ const ChatWindow = ({
             {sessionId ? "" : "첫 자료 생성을 시작해보세요."}
           </div>
         )}
+
+        {/* 첫 질문 시 로딩 상태 표시 */}
+        {isStartingNewChat && (isGeneratingResponse || isUploadingFile) && (
+          <div className="flex justify-start">
+            <div className="flex items-start space-x-3 max-w-[80%]">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-200">
+                <Bot className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 파일 선택 영역 */}
