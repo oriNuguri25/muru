@@ -35,6 +35,7 @@ interface ChatWindowProps {
   ) => Promise<void>;
   isGeneratingResponse?: boolean;
   isUploadingFile?: boolean;
+  isCreatingSession?: boolean;
   sessionType?: string; // URL 경로의 pdf 또는 png
 }
 
@@ -49,6 +50,7 @@ const ChatWindow = ({
   sendFileMessage,
   isGeneratingResponse = false,
   isUploadingFile = false,
+  isCreatingSession = false,
   sessionType,
 }: ChatWindowProps) => {
   const [inputMessage, setInputMessage] = useState("");
@@ -189,7 +191,7 @@ const ChatWindow = ({
         ) : messages.length > 0 ? (
           <>
             {messages.map(renderMessage)}
-            {(isGeneratingResponse || isUploadingFile) && (
+            {(isGeneratingResponse || isUploadingFile || isCreatingSession) && (
               <div className="flex justify-start">
                 <div className="flex items-start space-x-3 max-w-[80%]">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-200">
@@ -219,28 +221,29 @@ const ChatWindow = ({
         )}
 
         {/* 첫 질문 시 로딩 상태 표시 */}
-        {isStartingNewChat && (isGeneratingResponse || isUploadingFile) && (
-          <div className="flex justify-start">
-            <div className="flex items-start space-x-3 max-w-[80%]">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-200">
-                <Bot className="w-5 h-5 text-gray-600" />
-              </div>
-              <div className="p-4 rounded-2xl bg-white border border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.1s" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
+        {isStartingNewChat &&
+          (isGeneratingResponse || isUploadingFile || isCreatingSession) && (
+            <div className="flex justify-start">
+              <div className="flex items-start space-x-3 max-w-[80%]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-200">
+                  <Bot className="w-5 h-5 text-gray-600" />
+                </div>
+                <div className="p-4 rounded-2xl bg-white border border-gray-200">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* 파일 선택 영역 */}

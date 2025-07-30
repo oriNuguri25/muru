@@ -114,6 +114,7 @@ const ChatMain = () => {
         sendFileMessage={sendFileMessage}
         isGeneratingResponse={isGeneratingResponse}
         isUploadingFile={isUploadingFile}
+        isCreatingSession={isCreatingSession}
         sessionType={type}
       />
     </div>
