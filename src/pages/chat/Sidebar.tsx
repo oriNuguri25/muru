@@ -1,4 +1,4 @@
-import { Home, User } from "lucide-react";
+import { Home, User, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,11 +26,10 @@ const Sidebar = ({ type, sessions = [] }: SidebarProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // 실시간으로 세션 목록을 가져오는 쿼리
   const { data: realtimeSessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ["userSessions", user?.id, type],
     queryFn: async () => {
-      if (!user || !type) return [];
+      if (!user) return [];
 
       const { data, error } = await supabase
         .from("sessions")
@@ -88,6 +87,11 @@ const Sidebar = ({ type, sessions = [] }: SidebarProps) => {
     navigate(`/chat/${type}/${sessionId}`);
   };
 
+  const handleNewChatClick = () => {
+    // 현재 세션 ID를 제거하고 새 채팅 모드로 이동
+    navigate(`/chat/${type}`);
+  };
+
   return (
     <div className="flex flex-col h-full w-64 bg-white border-r border-gray-200">
       <div className="flex-shrink-0 p-4 border-b border-gray-200">
@@ -102,9 +106,21 @@ const Sidebar = ({ type, sessions = [] }: SidebarProps) => {
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
           <nav className="space-y-2">
-            <button className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-gray-100 transition-colors text-left cursor-pointer">
+            <button
+              onClick={handleMuruClick}
+              className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-gray-100 transition-colors text-left cursor-pointer"
+            >
               <Home className="w-5 h-5 text-gray-600" />
               <div className="text-gray-700 font-medium">홈</div>
+            </button>
+            <button
+              onClick={handleNewChatClick}
+              className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-gray-100 transition-colors text-left cursor-pointer"
+            >
+              <Plus className="w-5 h-5 text-gray-600" />
+              <div className="text-gray-700 font-medium">
+                새로운 대화 생성하기
+              </div>
             </button>
           </nav>
 

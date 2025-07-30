@@ -39,7 +39,6 @@ interface ChatWindowProps {
 }
 
 const ChatWindow = ({
-  sessionId,
   currentSession,
   messages = [],
   isLoadingMessages = false,
@@ -173,11 +172,10 @@ const ChatWindow = ({
       {/* chat header */}
       <div className="bg-white border-b border-gray-200 p-6 flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-800">
-          {currentSession?.title || "학습 자료 생성"}
+          아이에게 맞는 맞춤형 학습 자료를 생성해보세요.
         </h1>
         <div className="text-gray-600 mt-1">
-          아이에게 맞는 맞춤형 학습 자료를 생성해보세요.
-          {sessionId && ` (세션 ID: ${sessionId})`}
+          {currentSession?.title || "학습 자료 생성"}
         </div>
       </div>
 
@@ -271,7 +269,7 @@ const ChatWindow = ({
                   : "메시지를 입력하세요"
               }
               disabled={isGeneratingResponse || isUploadingFile}
-              className="flex-1 p-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="flex-1 p-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-black"
             />
             <input
               ref={fileInputRef}
