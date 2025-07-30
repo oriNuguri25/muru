@@ -10,7 +10,8 @@ const AppRoutes = () => {
       <Route path="/" element={<MainPage />} />
       <Route path="/auth" element={<AuthRedirectPage />} />
       <Route path="/auth/detail" element={<AuthDetailPage />} />
-      <Route path="/chat" element={<ChatMain />} />
+      <Route path="/chat/:type/:sessionId" element={<ChatMain />} />
+      <Route path="/chat/:type" element={<ChatMain />} />
     </Routes>
   );
 };

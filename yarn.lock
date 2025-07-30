@@ -3151,6 +3151,7 @@ __metadata:
     eslint-plugin-react-refresh: "npm:^0.4.20"
     globals: "npm:^16.3.0"
     lucide-react: "npm:^0.528.0"
+    openai: "npm:^5.10.2"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
     react-router-dom: "npm:^7.7.1"
@@ -3230,6 +3231,23 @@ __metadata:
   bin:
     nopt: bin/nopt.js
   checksum: 10c0/62e9ea70c7a3eb91d162d2c706b6606c041e4e7b547cbbb48f8b3695af457dd6479904d7ace600856bf923dd8d1ed0696f06195c8c20f02ac87c1da0e1d315ef
+  languageName: node
+  linkType: hard
+
+"openai@npm:^5.10.2":
+  version: 5.10.2
+  resolution: "openai@npm:5.10.2"
+  peerDependencies:
+    ws: ^8.18.0
+    zod: ^3.23.8
+  peerDependenciesMeta:
+    ws:
+      optional: true
+    zod:
+      optional: true
+  bin:
+    openai: bin/cli
+  checksum: 10c0/c08896a5d20722f3bd1a72522768ffc7c053a4df94f7b7f064c9946110070187264e6e3bf01c3abeb861e5602c65329d6aec485989338bae8ce8d3d81160fca9
   languageName: node
   linkType: hard
 

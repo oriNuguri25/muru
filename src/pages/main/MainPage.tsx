@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import KakaoLoginModal from "../../components/KakaoLoginModal";
 import { useAuth } from "../../context/useAuth";
@@ -6,11 +7,11 @@ import { useAuth } from "../../context/useAuth";
 const MainPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleLeftButtonClick = () => {
     if (user) {
-      // 로그인된 사용자: 실제 기능 실행
-      console.log("아이 맞춤 학습 자료 생성 기능 실행");
+      navigate(`/chat/pdf`);
     } else {
       // 로그인되지 않은 사용자: 로그인 모달 표시
       setIsModalOpen(true);
@@ -19,10 +20,10 @@ const MainPage = () => {
 
   const handleRightButtonClick = () => {
     if (user) {
-      // 로그인된 사용자: 실제 기능 실행
-      console.log("아이 맞춤 이미지 자료 생성 기능 실행");
+      // 로그인된 사용자는 채팅 페이지로 이동
+      navigate(`/chat/png`);
     } else {
-      // 로그인되지 않은 사용자: 로그인 모달 표시
+      // 로그인되지 않은 사용자는 로그인 모달 표시
       setIsModalOpen(true);
     }
   };
@@ -55,7 +56,7 @@ const MainPage = () => {
           </button>
           <button
             onClick={handleRightButtonClick}
-            className="bg-white text-purple-400 border-2 border-purple-400 px-8 py-4 rounded-2xl transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 cursor-pointer"
+            className="bg-white text-purple-400 border-2 border-purple-400 px-8 py-4 rounded-2xl hover:bg-purple-400 hover:text-white transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 cursor-pointer"
           >
             아이 맞춤 이미지 자료 생성
           </button>
