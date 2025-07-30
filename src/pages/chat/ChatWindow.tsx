@@ -39,6 +39,7 @@ interface ChatWindowProps {
 }
 
 const ChatWindow = ({
+  sessionId,
   currentSession,
   messages = [],
   isLoadingMessages = false,
@@ -213,9 +214,7 @@ const ChatWindow = ({
           </>
         ) : (
           <div className="text-center text-gray-500 mt-8">
-            {isStartingNewChat
-              ? "첫 번째 질문을 입력해주세요."
-              : "대화를 시작해보세요."}
+            {sessionId ? "" : "첫 자료 생성을 시작해보세요."}
           </div>
         )}
       </div>
