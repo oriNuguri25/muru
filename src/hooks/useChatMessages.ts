@@ -388,6 +388,12 @@ export const useChatMessages = (sessionId?: string) => {
 
       return data as ChatMessage;
     },
+    onSuccess: () => {
+      // 메시지 목록 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ["chatMessages", sessionId] });
+      // 세션 목록 캐시도 업데이트
+      queryClient.invalidateQueries({ queryKey: ["userSessions"] });
+    },
   });
 
   // 새 세션에서 AI 답변 생성 (첫 질문에 대한 응답)
@@ -427,6 +433,12 @@ export const useChatMessages = (sessionId?: string) => {
         .eq("id", sessionId);
 
       return data as ChatMessage;
+    },
+    onSuccess: () => {
+      // 메시지 목록 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ["chatMessages", sessionId] });
+      // 세션 목록 캐시도 업데이트
+      queryClient.invalidateQueries({ queryKey: ["userSessions"] });
     },
   });
 
