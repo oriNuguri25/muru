@@ -30,7 +30,7 @@ const ChatMain = () => {
     generateFirstResponse,
     isGeneratingResponse,
     isUploadingFile,
-  } = useChatMessages(sessionId);
+  } = useChatMessages(sessionId, type as "pdf" | "png");
 
   useEffect(() => {
     if (!["png", "pdf"].includes(type || "")) {

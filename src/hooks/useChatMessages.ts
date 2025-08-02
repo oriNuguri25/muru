@@ -18,7 +18,10 @@ interface ChatMessage {
   created_at: string;
 }
 
-export const useChatMessages = (sessionId?: string) => {
+export const useChatMessages = (
+  sessionId?: string,
+  chatType?: "pdf" | "png"
+) => {
   const queryClient = useQueryClient();
 
   // 세션의 메시지 목록 조회
@@ -208,7 +211,7 @@ export const useChatMessages = (sessionId?: string) => {
       if (!sessionId) throw new Error("세션이 없습니다.");
 
       // OpenAI에 메시지 전송
-      const response = await sendMessage(userMessage);
+      const response = await sendMessage(userMessage, chatType);
       const assistantMessage =
         response.choices[0]?.message?.content ||
         "죄송합니다. 응답을 생성할 수 없습니다.";
@@ -406,7 +409,7 @@ export const useChatMessages = (sessionId?: string) => {
       userMessage: string;
     }) => {
       // OpenAI에 메시지 전송
-      const response = await sendMessage(userMessage);
+      const response = await sendMessage(userMessage, chatType);
       const assistantMessage =
         response.choices[0]?.message?.content ||
         "죄송합니다. 응답을 생성할 수 없습니다.";
