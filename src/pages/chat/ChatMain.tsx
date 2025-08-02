@@ -4,11 +4,13 @@ import Sidebar from "./Sidebar";
 import ChatWindow from "./ChatWindow";
 import { useChatSession } from "../../hooks/useChatSession";
 import { useChatMessages } from "../../hooks/useChatMessages";
+import { useLoadingStore } from "../../stores/loadingStore";
 
 const ChatMain = () => {
   const navigate = useNavigate();
   const { type, sessionId } = useParams<{ type: string; sessionId?: string }>();
   const [isStartingNewChat, setIsStartingNewChat] = useState(false);
+  const { isFirstResponseLoading, setFirstResponseLoading } = useLoadingStore();
 
   const {
     currentSession,
@@ -46,6 +48,8 @@ const ChatMain = () => {
   // 새 채팅 시작 (첫 질문과 함께)
   const handleStartNewChat = async (firstQuestion: string) => {
     try {
+      setFirstResponseLoading(true); // 첫 질문 로딩 시작
+
       // 세션 생성
       const newSession = await createSession(firstQuestion);
 
@@ -64,8 +68,10 @@ const ChatMain = () => {
       });
 
       setIsStartingNewChat(false);
+      setFirstResponseLoading(false); // 첫 질문 로딩 완료
     } catch (error) {
       console.error("새 채팅 시작 중 오류:", error);
+      setFirstResponseLoading(false); // 에러 시에도 로딩 완료
     }
   };
 
@@ -115,6 +121,7 @@ const ChatMain = () => {
         isGeneratingResponse={isGeneratingResponse}
         isUploadingFile={isUploadingFile}
         isCreatingSession={isCreatingSession}
+        isFirstResponseLoading={isFirstResponseLoading}
         sessionType={type}
       />
     </div>

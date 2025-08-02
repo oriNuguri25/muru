@@ -36,6 +36,7 @@ interface ChatWindowProps {
   isGeneratingResponse?: boolean;
   isUploadingFile?: boolean;
   isCreatingSession?: boolean;
+  isFirstResponseLoading?: boolean;
   sessionType?: string; // URL 경로의 pdf 또는 png
 }
 
@@ -51,6 +52,7 @@ const ChatWindow = ({
   isGeneratingResponse = false,
   isUploadingFile = false,
   isCreatingSession = false,
+  isFirstResponseLoading = false,
   sessionType,
 }: ChatWindowProps) => {
   const [inputMessage, setInputMessage] = useState("");
@@ -222,7 +224,10 @@ const ChatWindow = ({
 
         {/* 첫 질문 시 로딩 상태 표시 */}
         {isStartingNewChat &&
-          (isGeneratingResponse || isUploadingFile || isCreatingSession) && (
+          (isGeneratingResponse ||
+            isUploadingFile ||
+            isCreatingSession ||
+            isFirstResponseLoading) && (
             <div className="flex justify-start">
               <div className="flex items-start space-x-3 max-w-[80%]">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-200">

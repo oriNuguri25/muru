@@ -74,7 +74,7 @@ const Sidebar = ({ type, sessions = [] }: SidebarProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, type, queryClient]);
+  }, [user, type, queryClient]);
 
   // 실시간 세션이 있으면 사용, 없으면 props로 받은 sessions 사용
   const displaySessions = realtimeSessions || sessions;
