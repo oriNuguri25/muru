@@ -42,7 +42,6 @@ interface ChatWindowProps {
 
 const ChatWindow = ({
   sessionId,
-  currentSession,
   messages = [],
   isLoadingMessages = false,
   isStartingNewChat = false,
@@ -177,10 +176,12 @@ const ChatWindow = ({
       {/* chat header */}
       <div className="bg-white border-b border-gray-200 p-6 flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-800">
-          아이에게 맞는 맞춤형 학습 자료를 생성해보세요.
+          {sessionType === "png"
+            ? "아이에게 맞는 맞춤형 이미지 자료를 생성해보세요."
+            : "아이에게 맞는 맞춤형 학습 자료를 생성해보세요."}
         </h1>
         <div className="text-gray-600 mt-1">
-          {currentSession?.title || "학습 자료 생성"}
+          {sessionType === "png" ? "이미지 자료 생성" : "학습 자료 생성"}
         </div>
       </div>
 
