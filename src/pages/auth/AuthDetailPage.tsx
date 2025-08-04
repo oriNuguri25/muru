@@ -27,7 +27,7 @@ const AuthDetailPage = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.from("user_profile").insert({
+      const { error } = await supabase.from("user_profile").upsert({
         user_id: user.id,
         name: name.trim(),
         email: user.email,
