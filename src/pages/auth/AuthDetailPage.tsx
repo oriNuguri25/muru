@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 const AuthDetailPage = () => {
   const [name, setName] = useState("");
-  const [userType, setUserType] = useState<"center" | "school" | "">("");
+  const [userType, setUserType] = useState<"center" | "school" | "">("center");
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ const AuthDetailPage = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.from("user_profile").upsert({
+      const { error } = await supabase.from("user_profile").insert({
         user_id: user.id,
         name: name.trim(),
         email: user.email,
