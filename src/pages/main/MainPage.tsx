@@ -10,12 +10,8 @@ const MainPage = () => {
   const navigate = useNavigate();
 
   const handleLeftButtonClick = () => {
-    if (user) {
-      navigate(`/chat/pdf`);
-    } else {
-      // 로그인되지 않은 사용자: 로그인 모달 표시
-      setIsModalOpen(true);
-    }
+    // 동영상 생성 기능은 일시적으로 비활성화
+    alert("동영상 생성 기능은 현재 준비 중입니다. 잠시만 기다려주세요.");
   };
 
   const handleRightButtonClick = () => {
@@ -50,9 +46,10 @@ const MainPage = () => {
         <div className="flex justify-center space-x-6">
           <button
             onClick={handleLeftButtonClick}
-            className="bg-purple-400 text-white px-8 py-4 rounded-2xl hover:bg-purple-500 transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 cursor-pointer"
+            className="bg-gray-400 text-white px-8 py-4 rounded-2xl transition-all duration-300 font-semibold text-lg shadow-lg cursor-not-allowed"
+            disabled
           >
-            아이 맞춤 학습 자료 생성
+            아이 맞춤 동영상 자료 생성 (준비 중)
           </button>
           <button
             onClick={handleRightButtonClick}

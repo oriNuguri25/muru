@@ -30,12 +30,12 @@ const ChatMain = () => {
     generateFirstResponse,
     isGeneratingResponse,
     isUploadingFile,
-  } = useChatMessages(sessionId, type as "pdf" | "png");
+  } = useChatMessages(sessionId);
 
   useEffect(() => {
-    if (!["png", "pdf"].includes(type || "")) {
-      // 잘못된 타입이면 리디렉션
-      navigate("/");
+    if (type !== "png") {
+      // PNG가 아니면 PNG로 리디렉션
+      navigate("/chat/png");
       return;
     }
 
