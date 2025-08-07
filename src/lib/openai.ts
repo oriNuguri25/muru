@@ -7,19 +7,34 @@ const openaiPng = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-// 이미지 요청 키워드 감지
-const isImageRequest = (message: string): boolean => {
-  const keywords = [
-    "그려줘",
-    "이미지",
-    "사진",
-    "그림",
-    "그림으로",
-    "이미지로",
-    "만들어줘",
-    "만들어",
+// GPT-4o가 이미지 생성이 필요한지 판단
+const shouldGenerateImage = async (
+  message: string,
+  chatHistory?: Array<{ role: "user" | "assistant"; content: string }>
+): Promise<boolean> => {
+  const messages = [
+    {
+      role: "system" as const,
+      content:
+        "사용자의 요청이 이미지 생성이 필요한지 판단해주세요. 'yes' 또는 'no'로만 답변하세요.",
+    },
+    // 채팅 기록 추가
+    ...(chatHistory || []),
+    {
+      role: "user" as const,
+      content: message,
+    },
   ];
-  return keywords.some((keyword) => message.toLowerCase().includes(keyword));
+
+  const response = await openaiPng.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages,
+    max_tokens: 10,
+    temperature: 0.1,
+  });
+
+  const answer = response.choices[0].message.content?.toLowerCase().trim();
+  return answer === "yes";
 };
 
 // 이미지 프롬프트 생성
@@ -71,8 +86,10 @@ export const sendMessage = async (
   message: string,
   chatHistory?: Array<{ role: "user" | "assistant"; content: string }>
 ) => {
-  // 이미지 요청인지 확인
-  if (isImageRequest(message)) {
+  // GPT-4o가 이미지 생성이 필요한지 판단
+  const needsImage = await shouldGenerateImage(message, chatHistory);
+
+  if (needsImage) {
     try {
       // 1. 영어 이미지 프롬프트 생성 (채팅 기록 포함)
       const imagePrompt = await generateImagePrompt(message, chatHistory);
