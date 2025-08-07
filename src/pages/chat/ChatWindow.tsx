@@ -158,13 +158,34 @@ const ChatWindow = ({
                     className="max-w-full max-h-64 rounded-lg"
                   />
                   <button
-                    onClick={() => {
-                      const link = document.createElement("a");
-                      link.href = message.file_url!;
-                      link.download = `image-${Date.now()}.png`;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
+                    onClick={async () => {
+                      try {
+                        // 이미지 URL에서 파일 다운로드
+                        const response = await fetch(message.file_url!);
+                        if (!response.ok) {
+                          throw new Error("이미지 다운로드 실패");
+                        }
+
+                        // Blob으로 변환
+                        const blob = await response.blob();
+
+                        // 다운로드 링크 생성
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = `image-${Date.now()}.png`;
+
+                        // 다운로드 실행
+                        document.body.appendChild(link);
+                        link.click();
+
+                        // 정리
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                      } catch (error) {
+                        console.error("이미지 다운로드 중 오류:", error);
+                        alert("이미지 다운로드에 실패했습니다.");
+                      }
                     }}
                     className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-700 hover:text-gray-900 p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
                     title="이미지 다운로드"

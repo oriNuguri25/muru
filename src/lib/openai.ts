@@ -15,8 +15,18 @@ const shouldGenerateImage = async (
   const messages = [
     {
       role: "system" as const,
-      content:
-        "사용자의 요청이 이미지 생성이 필요한지 판단해주세요. 'yes' 또는 'no'로만 답변하세요.",
+      content: `사용자의 요청이 이미지 생성이 필요한지 판단해주세요.
+
+이미지 생성이 필요한 경우:
+- "그려줘", "이미지로", "사진으로", "그림으로" 등의 표현
+- "시각화해줘", "보여줘" 등의 표현
+- 이미지가 필요한 상황 설명
+
+이미지 생성이 필요하지 않은 경우:
+- 일반적인 질문이나 설명 요청
+- 텍스트 기반 정보 요청
+
+'yes' 또는 'no'로만 답변하세요.`,
     },
     // 채팅 기록 추가
     ...(chatHistory || []),
@@ -45,7 +55,11 @@ const generateImagePrompt = async (
   const messages = [
     {
       role: "system" as const,
-      content: DALL_E_PROMPT,
+      content: `${DALL_E_PROMPT}
+
+위의 가이드라인을 따라 사용자의 한국어 요청을 영어 이미지 생성 프롬프트로 변환해주세요.
+이전 대화 맥락을 고려하여 구체적이고 상세한 묘사로 변환하세요.
+반드시 영어로 답변하세요.`,
     },
     // 채팅 기록 추가
     ...(chatHistory || []),
@@ -87,14 +101,17 @@ export const sendMessage = async (
 ) => {
   // GPT-4o가 이미지 생성이 필요한지 판단
   const needsImage = await shouldGenerateImage(message, chatHistory);
+  console.log("이미지 생성 필요 여부:", needsImage);
 
   if (needsImage) {
     try {
       // 1. 영어 이미지 프롬프트 생성 (채팅 기록 포함)
       const imagePrompt = await generateImagePrompt(message, chatHistory);
+      console.log("생성된 이미지 프롬프트:", imagePrompt);
 
       // 2. DALL-E 3로 이미지 생성
       const imageUrl = await generateImage(imagePrompt);
+      console.log("생성된 이미지 URL:", imageUrl);
 
       return {
         type: "image",

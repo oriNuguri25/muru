@@ -72,7 +72,7 @@ export const uploadFile = async (
 ): Promise<UploadResult> => {
   try {
     // 파일 타입별 폴더 결정
-    const folder = type === "pdf" ? "pdfs" : "pngs";
+    const folder = type === "pdf" ? "pdfs" : "imgs";
 
     // 고유한 파일명 생성 (타임스탬프 + 원본 파일명)
     const timestamp = Date.now();
