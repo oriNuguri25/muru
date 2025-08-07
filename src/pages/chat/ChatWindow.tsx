@@ -38,6 +38,7 @@ interface ChatWindowProps {
   isCreatingSession?: boolean;
   isFirstResponseLoading?: boolean;
   sessionType?: string; // URL 경로의 pdf 또는 png
+  isGeneratingImage?: boolean; // 이미지 생성 중인지 확인
 }
 
 const ChatWindow = ({
@@ -53,6 +54,7 @@ const ChatWindow = ({
   isCreatingSession = false,
   isFirstResponseLoading = false,
   sessionType,
+  isGeneratingImage = false,
 }: ChatWindowProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -201,17 +203,34 @@ const ChatWindow = ({
                     <Bot className="w-5 h-5 text-gray-600" />
                   </div>
                   <div className="p-4 rounded-2xl bg-white border border-gray-200">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                    </div>
+                    {isGeneratingImage ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                        <span className="text-sm text-gray-600 ml-2">
+                          이미지를 생성중입니다...
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -235,17 +254,34 @@ const ChatWindow = ({
                   <Bot className="w-5 h-5 text-gray-600" />
                 </div>
                 <div className="p-4 rounded-2xl bg-white border border-gray-200">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.1s" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    ></div>
-                  </div>
+                  {isGeneratingImage ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                      <span className="text-sm text-gray-600 ml-2">
+                        이미지를 생성중입니다...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
