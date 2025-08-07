@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { MURU_PROMPT, DALL_E_PROMPT } from "./prompts";
+import { MURU_PROMPT } from "./prompts";
 
 // PNG용 OpenAI 클라이언트
 const openaiPng = new OpenAI({
@@ -21,6 +21,7 @@ const shouldGenerateImage = async (
 - "그려줘", "이미지로", "사진으로", "그림으로" 등의 표현
 - "시각화해줘", "보여줘" 등의 표현
 - 이미지가 필요한 상황 설명
+- "다시 만들어줘", "다시 그려줘" 등의 표현
 
 이미지 생성이 필요하지 않은 경우:
 - 일반적인 질문이나 설명 요청
@@ -44,6 +45,7 @@ const shouldGenerateImage = async (
   });
 
   const answer = response.choices[0].message.content?.toLowerCase().trim();
+  console.log("이미지 생성 판단 결과:", answer);
   return answer === "yes";
 };
 
@@ -55,11 +57,21 @@ const generateImagePrompt = async (
   const messages = [
     {
       role: "system" as const,
-      content: `${DALL_E_PROMPT}
+      content: `Convert the Korean request to English image generation prompt for special education children.
 
-위의 가이드라인을 따라 사용자의 한국어 요청을 영어 이미지 생성 프롬프트로 변환해주세요.
-이전 대화 맥락을 고려하여 구체적이고 상세한 묘사로 변환하세요.
-반드시 영어로 답변하세요.`,
+Guidelines:
+- Use soft pastel colors (3-4 colors max)
+- Simple design with 5 or fewer elements
+- No text in image
+- Child-friendly illustration style
+- Simple background
+- Educational content
+
+Examples:
+- "강아지를 그려줘" → "A cute and friendly dog in soft pastel colors, simple design, no text, child-friendly illustration style"
+- "친구와 함께 놀는 모습" → "Two children playing together happily, simple background, soft colors, no text, educational illustration"
+
+Respond only with the English prompt, no explanations.`,
     },
     // 채팅 기록 추가
     ...(chatHistory || []),
@@ -76,23 +88,37 @@ const generateImagePrompt = async (
     temperature: 0.7,
   });
 
-  return response.choices[0].message.content ?? "";
+  const prompt = response.choices[0].message.content ?? "";
+  console.log("생성된 영어 프롬프트:", prompt);
+  return prompt;
 };
 
 // 이미지 생성
 const generateImage = async (prompt: string): Promise<string> => {
-  const response = await openaiPng.images.generate({
-    model: "dall-e-3",
-    prompt,
-    size: "1024x1024",
-    n: 1,
-  });
+  try {
+    console.log("DALL-E 3에 전송할 프롬프트:", prompt);
 
-  if (!response.data || response.data.length === 0) {
-    throw new Error("이미지 생성에 실패했습니다.");
+    const response = await openaiPng.images.generate({
+      model: "dall-e-3",
+      prompt,
+      size: "1024x1024",
+      n: 1,
+    });
+
+    console.log("DALL-E 3 응답:", response);
+
+    if (!response.data || response.data.length === 0) {
+      throw new Error("이미지 생성에 실패했습니다.");
+    }
+
+    const imageUrl = response.data[0].url;
+    console.log("생성된 이미지 URL:", imageUrl);
+
+    return imageUrl ?? "";
+  } catch (error) {
+    console.error("DALL-E 3 이미지 생성 중 오류:", error);
+    throw error;
   }
-
-  return response.data[0].url ?? "";
 };
 
 export const sendMessage = async (
