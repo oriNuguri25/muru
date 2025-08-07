@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://muru-eight.vercel.app",
+        target: "http://localhost:3000", // 개발 환경에서만 사용
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,

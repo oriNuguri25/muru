@@ -484,10 +484,12 @@ export const useChatMessages = (sessionId?: string) => {
       if ("url" in response && response.type === "image") {
         try {
           // 이미지를 Supabase Storage에 업로드
+          console.log("Supabase Storage 업로드 시작...");
           const uploadResult = await uploadImageFromUrl(
             response.url,
             `ai-generated-${Date.now()}.png`
           );
+          console.log("업로드 결과:", uploadResult);
 
           // 이미지 응답 저장
           const { data, error } = await supabase
@@ -514,6 +516,7 @@ export const useChatMessages = (sessionId?: string) => {
           return data as ChatMessage;
         } catch (uploadError) {
           console.error("이미지 업로드 실패:", uploadError);
+          console.log("원본 URL로 저장 시도...");
           // 업로드 실패 시 원본 URL로 저장
           const { data, error } = await supabase
             .from("messages")
