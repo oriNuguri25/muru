@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { MURU_PROMPT } from "./prompts";
+import { MURU_PROMPT, DALL_E_PROMPT } from "./prompts";
 
 // PNG용 OpenAI 클라이언트
 const openaiPng = new OpenAI({
@@ -45,8 +45,7 @@ const generateImagePrompt = async (
   const messages = [
     {
       role: "system" as const,
-      content:
-        "사용자의 한국어 요청을 영어 이미지 생성 프롬프트로 변환해주세요. 이전 대화 맥락을 고려하여 구체적이고 상세한 묘사로 변환하세요.",
+      content: DALL_E_PROMPT,
     },
     // 채팅 기록 추가
     ...(chatHistory || []),
@@ -59,7 +58,7 @@ const generateImagePrompt = async (
   const response = await openaiPng.chat.completions.create({
     model: "gpt-4o-mini",
     messages,
-    max_tokens: 200,
+    max_tokens: 300,
     temperature: 0.7,
   });
 
