@@ -51,14 +51,22 @@ export const uploadImageFromUrl = async (
   fileName: string = "ai-generated.png"
 ): Promise<UploadResult> => {
   try {
+    console.log("이미지 URL 다운로드 시작:", imageUrl);
+
     // URL에서 이미지 파일 다운로드
     const blob = await downloadFileFromUrl(imageUrl);
+    console.log("다운로드된 Blob 크기:", blob.size);
 
     // Blob을 File 객체로 변환
     const file = blobToFile(blob, fileName);
+    console.log("생성된 File 객체:", file.name, file.size, file.type);
 
     // 이미지 파일을 Storage에 업로드
-    return await uploadFile(file, "png");
+    console.log("Supabase Storage 업로드 시작...");
+    const result = await uploadFile(file, "png");
+    console.log("업로드 완료:", result);
+
+    return result;
   } catch (error) {
     console.error("이미지 URL에서 파일 업로드 중 오류:", error);
     throw error;
@@ -71,15 +79,20 @@ export const uploadFile = async (
   type: "pdf" | "png"
 ): Promise<UploadResult> => {
   try {
+    console.log("업로드할 파일 정보:", file.name, file.size, file.type);
+
     // 파일 타입별 폴더 결정
     const folder = type === "pdf" ? "pdfs" : "imgs";
+    console.log("사용할 폴더:", folder);
 
     // 고유한 파일명 생성 (타임스탬프 + 원본 파일명)
     const timestamp = Date.now();
     const fileName = `${timestamp}_${file.name}`;
     const filePath = `gpt-generated/${folder}/${fileName}`;
+    console.log("파일 경로:", filePath);
 
     // Supabase Storage에 업로드
+    console.log("Supabase Storage 업로드 시도...");
     const { error } = await supabase.storage
       .from("gpt-generated")
       .upload(filePath, file, {
@@ -88,19 +101,25 @@ export const uploadFile = async (
       });
 
     if (error) {
+      console.error("Supabase Storage 업로드 에러:", error);
       throw new Error(`파일 업로드 실패: ${error.message}`);
     }
+
+    console.log("Supabase Storage 업로드 성공!");
 
     // 공개 URL 생성
     const { data: urlData } = supabase.storage
       .from("gpt-generated")
       .getPublicUrl(filePath);
 
-    return {
+    const result = {
       fileUrl: urlData.publicUrl,
       fileName: fileName,
       filePath: filePath,
     };
+
+    console.log("생성된 공개 URL:", result.fileUrl);
+    return result;
   } catch (error) {
     console.error("파일 업로드 중 오류:", error);
     throw error;
