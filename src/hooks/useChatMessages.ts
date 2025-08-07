@@ -209,67 +209,98 @@ export const useChatMessages = (sessionId?: string) => {
 
       // OpenAI에 메시지 전송
       const response = await sendMessage(userMessage);
-      const assistantMessage =
-        response.choices[0]?.message?.content ||
-        "죄송합니다. 응답을 생성할 수 없습니다.";
 
-      // PDF 링크 감지 (http/https로 시작하는 URL 중 .pdf로 끝나는 것)
-      const pdfUrlMatch = assistantMessage.match(/https?:\/\/[^\s]+\.pdf/gi);
-
-      if (pdfUrlMatch && pdfUrlMatch.length > 0) {
-        // PDF 링크가 있으면 텍스트 메시지와 PDF 파일을 분리하여 저장
-        const pdfUrl = pdfUrlMatch[0];
-        const textContent = assistantMessage.replace(pdfUrl, "").trim();
-
-        // 텍스트 메시지 저장
-        if (textContent) {
-          const { error: textError } = await supabase.from("messages").insert({
-            session_id: sessionId,
-            role: "assistant",
-            type: "text",
-            contents: textContent,
-            created_at: new Date().toISOString(),
-          });
-
-          if (textError) throw textError;
-        }
-
-        // PDF 파일 다운로드 및 저장
-        try {
-          await processAiPdfLink.mutateAsync({
-            pdfUrl,
-            contents: "AI가 생성한 PDF 파일",
-            fileName: `ai-generated-${Date.now()}.pdf`,
-          });
-        } catch (pdfError) {
-          console.error("PDF 링크 처리 실패:", pdfError);
-          // PDF 처리 실패 시 원본 메시지를 텍스트로 저장
-          const { error } = await supabase.from("messages").insert({
-            session_id: sessionId,
-            role: "assistant",
-            type: "text",
-            contents: assistantMessage,
-            created_at: new Date().toISOString(),
-          });
-
-          if (error) throw error;
-        }
-      } else {
-        // 일반 텍스트 응답 저장
+      // 응답 타입 확인 (이미지 또는 텍스트)
+      if ("url" in response && response.type === "image") {
+        // 이미지 응답 저장
         const { data, error } = await supabase
           .from("messages")
           .insert({
             session_id: sessionId,
             role: "assistant",
-            type: "text",
-            contents: assistantMessage,
+            type: "png",
+            contents: "생성된 이미지",
+            file_url: response.url,
             created_at: new Date().toISOString(),
           })
           .select()
           .single();
 
         if (error) throw error;
+
+        // 세션의 updated_at 업데이트
+        await supabase
+          .from("sessions")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", sessionId);
+
         return data as ChatMessage;
+      } else {
+        // 텍스트 응답 처리
+        const assistantMessage =
+          ("content" in response && response.content) ||
+          "죄송합니다. 응답을 생성할 수 없습니다.";
+
+        // PDF 링크 감지 (http/https로 시작하는 URL 중 .pdf로 끝나는 것)
+        const pdfUrlMatch = assistantMessage.match(/https?:\/\/[^\s]+\.pdf/gi);
+
+        if (pdfUrlMatch && pdfUrlMatch.length > 0) {
+          // PDF 링크가 있으면 텍스트 메시지와 PDF 파일을 분리하여 저장
+          const pdfUrl = pdfUrlMatch[0];
+          const textContent = assistantMessage.replace(pdfUrl, "").trim();
+
+          // 텍스트 메시지 저장
+          if (textContent) {
+            const { error: textError } = await supabase
+              .from("messages")
+              .insert({
+                session_id: sessionId,
+                role: "assistant",
+                type: "text",
+                contents: textContent,
+                created_at: new Date().toISOString(),
+              });
+
+            if (textError) throw textError;
+          }
+
+          // PDF 파일 다운로드 및 저장
+          try {
+            await processAiPdfLink.mutateAsync({
+              pdfUrl,
+              contents: "AI가 생성한 PDF 파일",
+              fileName: `ai-generated-${Date.now()}.pdf`,
+            });
+          } catch (pdfError) {
+            console.error("PDF 링크 처리 실패:", pdfError);
+            // PDF 처리 실패 시 원본 메시지를 텍스트로 저장
+            const { error } = await supabase.from("messages").insert({
+              session_id: sessionId,
+              role: "assistant",
+              type: "text",
+              contents: assistantMessage,
+              created_at: new Date().toISOString(),
+            });
+
+            if (error) throw error;
+          }
+        } else {
+          // 일반 텍스트 응답 저장
+          const { data, error } = await supabase
+            .from("messages")
+            .insert({
+              session_id: sessionId,
+              role: "assistant",
+              type: "text",
+              contents: assistantMessage,
+              created_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+          return data as ChatMessage;
+        }
       }
 
       // 세션의 updated_at 업데이트
@@ -407,32 +438,61 @@ export const useChatMessages = (sessionId?: string) => {
     }) => {
       // OpenAI에 메시지 전송
       const response = await sendMessage(userMessage);
-      const assistantMessage =
-        response.choices[0]?.message?.content ||
-        "죄송합니다. 응답을 생성할 수 없습니다.";
 
-      // 어시스턴트 응답을 데이터베이스에 저장
-      const { data, error } = await supabase
-        .from("messages")
-        .insert({
-          session_id: sessionId,
-          role: "assistant",
-          type: "text",
-          contents: assistantMessage,
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      // 응답 타입 확인 (이미지 또는 텍스트)
+      if ("url" in response && response.type === "image") {
+        // 이미지 응답 저장
+        const { data, error } = await supabase
+          .from("messages")
+          .insert({
+            session_id: sessionId,
+            role: "assistant",
+            type: "png",
+            contents: "생성된 이미지",
+            file_url: response.url,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // 세션의 updated_at 업데이트
-      await supabase
-        .from("sessions")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", sessionId);
+        // 세션의 updated_at 업데이트
+        await supabase
+          .from("sessions")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", sessionId);
 
-      return data as ChatMessage;
+        return data as ChatMessage;
+      } else {
+        // 텍스트 응답 처리
+        const assistantMessage =
+          ("content" in response && response.content) ||
+          "죄송합니다. 응답을 생성할 수 없습니다.";
+
+        // 어시스턴트 응답을 데이터베이스에 저장
+        const { data, error } = await supabase
+          .from("messages")
+          .insert({
+            session_id: sessionId,
+            role: "assistant",
+            type: "text",
+            contents: assistantMessage,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // 세션의 updated_at 업데이트
+        await supabase
+          .from("sessions")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", sessionId);
+
+        return data as ChatMessage;
+      }
     },
     onSuccess: () => {
       // 메시지 목록 캐시 업데이트
@@ -457,5 +517,6 @@ export const useChatMessages = (sessionId?: string) => {
     isGeneratingResponse: generateResponseMutation.isPending,
     isUploadingFile: uploadFileAndCreateMessage.isPending,
     isProcessingPdfLink: processAiPdfLink.isPending,
+    isGeneratingImage: generateResponseMutation.isPending, // 이미지 생성 상태 추가
   };
 };
