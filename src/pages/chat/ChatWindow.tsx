@@ -1,4 +1,4 @@
-import { Bot, Send, User, Upload, X } from "lucide-react";
+import { Bot, Send, User, Upload, X, Download } from "lucide-react";
 import { useState, useRef } from "react";
 
 interface ChatSession {
@@ -151,11 +151,27 @@ const ChatWindow = ({
           {message.file_url && (
             <div className="mt-2">
               {message.type === "png" ? (
-                <img
-                  src={message.file_url}
-                  alt="업로드된 이미지"
-                  className="max-w-full max-h-64 rounded-lg"
-                />
+                <div className="relative inline-block">
+                  <img
+                    src={message.file_url}
+                    alt="업로드된 이미지"
+                    className="max-w-full max-h-64 rounded-lg"
+                  />
+                  <button
+                    onClick={() => {
+                      const link = document.createElement("a");
+                      link.href = message.file_url!;
+                      link.download = `image-${Date.now()}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-700 hover:text-gray-900 p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                    title="이미지 다운로드"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
               ) : (
                 <a
                   href={message.file_url}

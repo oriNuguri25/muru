@@ -45,6 +45,26 @@ export const uploadPdfFromUrl = async (
   }
 };
 
+// AI가 생성한 이미지 URL을 다운로드하여 Storage에 저장
+export const uploadImageFromUrl = async (
+  imageUrl: string,
+  fileName: string = "ai-generated.png"
+): Promise<UploadResult> => {
+  try {
+    // URL에서 이미지 파일 다운로드
+    const blob = await downloadFileFromUrl(imageUrl);
+
+    // Blob을 File 객체로 변환
+    const file = blobToFile(blob, fileName);
+
+    // 이미지 파일을 Storage에 업로드
+    return await uploadFile(file, "png");
+  } catch (error) {
+    console.error("이미지 URL에서 파일 업로드 중 오류:", error);
+    throw error;
+  }
+};
+
 // 파일을 Supabase Storage에 업로드
 export const uploadFile = async (
   file: File,
