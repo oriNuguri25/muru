@@ -7,6 +7,7 @@ import {
   uploadImageFromUrl,
   validateFileSize,
   isSupportedFileType,
+  uploadImageUrlDirectly,
 } from "../lib/storage";
 
 interface ChatMessage {
@@ -252,29 +253,61 @@ export const useChatMessages = (sessionId?: string) => {
           return data as ChatMessage;
         } catch (uploadError) {
           console.error("이미지 업로드 실패:", uploadError);
-          // 업로드 실패 시 원본 URL로 저장
-          const { data, error } = await supabase
-            .from("messages")
-            .insert({
-              session_id: sessionId,
-              role: "assistant",
-              type: "png",
-              contents: "생성된 이미지",
-              file_url: response.url,
-              created_at: new Date().toISOString(),
-            })
-            .select()
-            .single();
+          // 업로드 실패 시 원본 URL을 사용하여 저장
+          try {
+            const uploadResult = await uploadImageUrlDirectly(
+              response.url,
+              `ai-generated-${Date.now()}.png`
+            );
 
-          if (error) throw error;
+            const { data, error } = await supabase
+              .from("messages")
+              .insert({
+                session_id: sessionId,
+                role: "assistant",
+                type: "png",
+                contents: "생성된 이미지",
+                file_url: uploadResult.fileUrl, // 원본 DALL-E URL 사용
+                created_at: new Date().toISOString(),
+              })
+              .select()
+              .single();
 
-          // 세션의 updated_at 업데이트
-          await supabase
-            .from("sessions")
-            .update({ updated_at: new Date().toISOString() })
-            .eq("id", sessionId);
+            if (error) throw error;
 
-          return data as ChatMessage;
+            // 세션의 updated_at 업데이트
+            await supabase
+              .from("sessions")
+              .update({ updated_at: new Date().toISOString() })
+              .eq("id", sessionId);
+
+            return data as ChatMessage;
+          } catch (fallbackError) {
+            console.error("원본 URL 저장도 실패:", fallbackError);
+            // 최종 폴백: 원본 URL을 직접 저장
+            const { data, error } = await supabase
+              .from("messages")
+              .insert({
+                session_id: sessionId,
+                role: "assistant",
+                type: "png",
+                contents: "생성된 이미지",
+                file_url: response.url,
+                created_at: new Date().toISOString(),
+              })
+              .select()
+              .single();
+
+            if (error) throw error;
+
+            // 세션의 updated_at 업데이트
+            await supabase
+              .from("sessions")
+              .update({ updated_at: new Date().toISOString() })
+              .eq("id", sessionId);
+
+            return data as ChatMessage;
+          }
         }
       } else {
         // 텍스트 응답 처리
@@ -517,29 +550,61 @@ export const useChatMessages = (sessionId?: string) => {
         } catch (uploadError) {
           console.error("이미지 업로드 실패:", uploadError);
           console.log("원본 URL로 저장 시도...");
-          // 업로드 실패 시 원본 URL로 저장
-          const { data, error } = await supabase
-            .from("messages")
-            .insert({
-              session_id: sessionId,
-              role: "assistant",
-              type: "png",
-              contents: "생성된 이미지",
-              file_url: response.url,
-              created_at: new Date().toISOString(),
-            })
-            .select()
-            .single();
+          // 업로드 실패 시 원본 URL을 사용하여 저장
+          try {
+            const uploadResult = await uploadImageUrlDirectly(
+              response.url,
+              `ai-generated-${Date.now()}.png`
+            );
 
-          if (error) throw error;
+            const { data, error } = await supabase
+              .from("messages")
+              .insert({
+                session_id: sessionId,
+                role: "assistant",
+                type: "png",
+                contents: "생성된 이미지",
+                file_url: uploadResult.fileUrl, // 원본 DALL-E URL 사용
+                created_at: new Date().toISOString(),
+              })
+              .select()
+              .single();
 
-          // 세션의 updated_at 업데이트
-          await supabase
-            .from("sessions")
-            .update({ updated_at: new Date().toISOString() })
-            .eq("id", sessionId);
+            if (error) throw error;
 
-          return data as ChatMessage;
+            // 세션의 updated_at 업데이트
+            await supabase
+              .from("sessions")
+              .update({ updated_at: new Date().toISOString() })
+              .eq("id", sessionId);
+
+            return data as ChatMessage;
+          } catch (fallbackError) {
+            console.error("원본 URL 저장도 실패:", fallbackError);
+            // 최종 폴백: 원본 URL을 직접 저장
+            const { data, error } = await supabase
+              .from("messages")
+              .insert({
+                session_id: sessionId,
+                role: "assistant",
+                type: "png",
+                contents: "생성된 이미지",
+                file_url: response.url,
+                created_at: new Date().toISOString(),
+              })
+              .select()
+              .single();
+
+            if (error) throw error;
+
+            // 세션의 updated_at 업데이트
+            await supabase
+              .from("sessions")
+              .update({ updated_at: new Date().toISOString() })
+              .eq("id", sessionId);
+
+            return data as ChatMessage;
+          }
         }
       } else {
         // 텍스트 응답 처리

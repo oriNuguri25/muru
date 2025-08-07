@@ -137,8 +137,6 @@ export const uploadImageFromUrl = async (
       blob = await downloadFileFromUrl(imageUrl);
       console.log("API 라우트를 통한 다운로드 성공:", blob.size);
     } catch (apiError) {
-      const apiErrorMessage =
-        apiError instanceof Error ? apiError.message : String(apiError);
       console.warn("API 라우트 다운로드 실패, 직접 다운로드 시도:", apiError);
 
       // 방법 2: 직접 다운로드 시도 (CORS 허용된 경우)
@@ -157,17 +155,11 @@ export const uploadImageFromUrl = async (
         blob = await response.blob();
         console.log("직접 다운로드 성공:", blob.size);
       } catch (directError) {
-        const directErrorMessage =
-          directError instanceof Error
-            ? directError.message
-            : String(directError);
         console.error("직접 다운로드도 실패:", directError);
 
-        // 방법 3: 이미지 URL을 그대로 사용하고 Supabase에 URL만 저장
-        console.warn("다운로드 실패, URL을 그대로 사용합니다.");
-        throw new Error(
-          `이미지 다운로드 실패: API 라우트(${apiErrorMessage}), 직접 다운로드(${directErrorMessage})`
-        );
+        // 방법 3: 원본 URL을 그대로 사용하고 Supabase에 URL만 저장
+        console.warn("다운로드 실패, 원본 URL을 그대로 사용합니다.");
+        return await uploadImageUrlDirectly(imageUrl, fileName);
       }
     }
 
@@ -185,6 +177,36 @@ export const uploadImageFromUrl = async (
     return result;
   } catch (error) {
     console.error("이미지 URL에서 파일 업로드 중 오류:", error);
+    throw error;
+  }
+};
+
+// 원본 URL을 그대로 사용하여 Supabase에 저장
+export const uploadImageUrlDirectly = async (
+  imageUrl: string,
+  fileName: string = "ai-generated.png"
+): Promise<UploadResult> => {
+  try {
+    console.log("원본 URL을 그대로 사용하여 저장:", imageUrl);
+
+    // 고유한 파일명 생성 (타임스탬프 + 원본 파일명)
+    const timestamp = Date.now();
+    const finalFileName = `${timestamp}_${fileName}`;
+    const filePath = `gpt-generated/imgs/${finalFileName}`;
+    console.log("파일 경로:", filePath);
+
+    // Supabase에 URL 정보만 저장 (실제 파일은 업로드하지 않음)
+    // 이 경우 file_url에 원본 DALL-E URL을 저장
+    const result = {
+      fileUrl: imageUrl, // 원본 DALL-E URL 사용
+      fileName: finalFileName,
+      filePath: filePath,
+    };
+
+    console.log("원본 URL 저장 완료:", result);
+    return result;
+  } catch (error) {
+    console.error("원본 URL 저장 중 오류:", error);
     throw error;
   }
 };
