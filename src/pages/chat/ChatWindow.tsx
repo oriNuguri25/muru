@@ -165,6 +165,19 @@ const ChatWindow = ({
                     onError={(e) => {
                       console.error("이미지 로딩 실패:", message.file_url);
                       const target = e.target as HTMLImageElement;
+
+                      // QUIC 프로토콜 오류인지 확인
+                      if (target.src && target.src.includes("supabase.co")) {
+                        console.log("Supabase 이미지 로딩 실패, 재시도 중...");
+
+                        // 잠시 후 재시도
+                        setTimeout(() => {
+                          target.src = target.src + "?retry=" + Date.now();
+                        }, 1000);
+
+                        return; // 재시도 중이므로 에러 메시지 표시하지 않음
+                      }
+
                       target.style.display = "none";
 
                       // base64 데이터가 있는지 확인
