@@ -93,7 +93,8 @@ export async function sendMessageWithImages(
   message: string,
   previousResponseId?: string
 ): Promise<ChatResult> {
-  const resp = await openai.responses.create({
+  // OpenAI API 요청 파라미터 구성
+  const requestParams: any = {
     model: "gpt-5-mini",
     // 시스템 역할 프롬프트: 너가 가진 정책 프롬프트들을 여기에 결합
     instructions: [
@@ -105,8 +106,23 @@ export async function sendMessageWithImages(
       .join("\n\n"),
     input: message,
     tools: [{ type: "image_generation" }],
-    ...(previousResponseId ? { previous_response_id: previousResponseId } : {}),
-  });
+  };
+
+  // previousResponseId가 유효한 OpenAI 응답 ID 형식인 경우에만 추가
+  if (previousResponseId && previousResponseId.startsWith("resp_")) {
+    requestParams.previous_response_id = previousResponseId;
+    console.log("이전 OpenAI 응답 ID 연결:", previousResponseId);
+  } else if (previousResponseId) {
+    console.warn(
+      "잘못된 OpenAI 응답 ID 형식:",
+      previousResponseId,
+      "- 컨텍스트 없이 처리"
+    );
+  } else {
+    console.log("이전 응답 ID 없음 - 새로운 대화로 처리");
+  }
+
+  const resp = await openai.responses.create(requestParams);
 
   const items = parseResponseOutput(resp);
   return { responseId: resp.id, items };
@@ -131,13 +147,29 @@ export async function sendTextOnly(
   message: string,
   previousResponseId?: string
 ): Promise<ChatResult> {
-  const resp = await openai.responses.create({
+  // OpenAI API 요청 파라미터 구성
+  const requestParams: any = {
     model: "gpt-5-mini",
     instructions: MURU_PROMPT,
     input: message,
     // tools 미지정 → 절대 이미지 생성 안 함
-    ...(previousResponseId ? { previous_response_id: previousResponseId } : {}),
-  });
+  };
+
+  // previousResponseId가 유효한 OpenAI 응답 ID 형식인 경우에만 추가
+  if (previousResponseId && previousResponseId.startsWith("resp_")) {
+    requestParams.previous_response_id = previousResponseId;
+    console.log("이전 OpenAI 응답 ID 연결 (텍스트만):", previousResponseId);
+  } else if (previousResponseId) {
+    console.warn(
+      "잘못된 OpenAI 응답 ID 형식 (텍스트만):",
+      previousResponseId,
+      "- 컨텍스트 없이 처리"
+    );
+  } else {
+    console.log("이전 응답 ID 없음 (텍스트만) - 새로운 대화로 처리");
+  }
+
+  const resp = await openai.responses.create(requestParams);
   const items = parseResponseOutput(resp).filter((i) => i.type === "text");
   return { responseId: resp.id, items };
 }

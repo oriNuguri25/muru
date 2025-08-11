@@ -208,43 +208,25 @@ export const useChatMessages = (sessionId?: string) => {
     mutationFn: async (userMessage: string) => {
       if (!sessionId) throw new Error("세션이 없습니다.");
 
-      // 이전 AI 응답 ID를 찾기 위해 최근 메시지들 확인
-      // 이미지 생성 요청이 포함된 AI 응답을 찾기 위해 contents도 함께 조회
-      const recentMessages = await supabase
-        .from("messages")
-        .select("id, role, type, contents")
-        .eq("session_id", sessionId)
-        .eq("role", "assistant")
-        .order("created_at", { ascending: false })
-        .limit(5); // 최근 5개 메시지 확인
+      // 이전 OpenAI 응답 ID를 찾기 위해 최근 메시지들 확인
+      // OpenAI API의 previous_response_id는 OpenAI가 생성한 응답 ID여야 함
+      // Supabase 메시지 ID가 아닌 OpenAI 응답 ID를 저장해야 함
 
+      // 현재는 OpenAI 응답 ID를 저장하지 않고 있으므로,
+      // 이전 응답과의 컨텍스트 연결을 위해 다른 방법 사용
       let previousResponseId: string | undefined;
-      if (recentMessages.data && recentMessages.data.length > 0) {
-        // 이미지 생성 요청이 포함된 AI 응답을 찾기
-        for (const msg of recentMessages.data) {
-          if (
-            msg.contents &&
-            (msg.contents.includes("이대로 이미지를 만들까요") ||
-              msg.contents.includes("이대로 만들까요") ||
-              msg.contents.includes("네/수정") ||
-              msg.contents.includes("기본값으로 제작해드릴게요"))
-          ) {
-            previousResponseId = msg.id;
-            break;
-          }
-        }
 
-        // 이미지 생성 요청을 찾지 못했다면 가장 최근 AI 응답 사용
-        if (!previousResponseId) {
-          previousResponseId = recentMessages.data[0].id;
-        }
-      }
-
-      // OpenAI에 메시지 전송 (이미지 생성 가능, 이전 응답 ID와 함께)
-      const response = await sendMessageWithImages(
-        userMessage,
-        previousResponseId
+      // TODO: OpenAI 응답 ID를 메시지에 저장하는 방식으로 개선 필요
+      // 현재는 이전 응답 ID 없이 새로운 요청으로 처리
+      console.log(
+        "OpenAI 응답 ID 저장 방식 개선 필요 - 현재는 컨텍스트 없이 처리"
       );
+
+      // OpenAI에 메시지 전송 (이미지 생성 가능)
+      // 현재는 이전 응답 ID 없이 처리 (OpenAI 응답 ID 저장 방식 개선 후 연결 예정)
+      const response = await sendMessageWithImages(userMessage);
+
+      console.log("OpenAI 응답 생성 완료:", response.responseId);
 
       // 응답 아이템들을 순서대로 처리
       for (const item of response.items) {
