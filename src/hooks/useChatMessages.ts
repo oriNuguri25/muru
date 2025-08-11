@@ -16,6 +16,7 @@ interface ChatMessage {
   type: "text" | "png" | "pdf";
   contents: string;
   file_url?: string;
+  openai_response_id?: string;
   created_at: string;
 }
 
@@ -211,6 +212,23 @@ export const useChatMessages = (sessionId?: string) => {
       // OpenAI에 메시지 전송 (이미지 생성 가능)
       // 이전 대화 컨텍스트를 기억하기 위해 최근 메시지들을 포함하여 전송
 
+      // 이전 OpenAI 응답 ID를 찾기 위해 최근 AI 응답 확인
+      const recentAiResponse = await supabase
+        .from("messages")
+        .select("openai_response_id")
+        .eq("session_id", sessionId)
+        .eq("role", "assistant")
+        .not("openai_response_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      let previousResponseId: string | undefined;
+
+      if (recentAiResponse.data && recentAiResponse.data.length > 0) {
+        previousResponseId = recentAiResponse.data[0].openai_response_id;
+        console.log("이전 OpenAI 응답 ID 발견:", previousResponseId);
+      }
+
       // 최근 10개 사용자 메시지만 가져와서 컨텍스트 구성
       const recentUserMessages = await supabase
         .from("messages")
@@ -236,9 +254,16 @@ export const useChatMessages = (sessionId?: string) => {
         );
       }
 
-      const response = await sendMessageWithImages(contextualMessage);
+      // OpenAI에 메시지 전송 (이전 응답 ID와 함께)
+      const response = await sendMessageWithImages(
+        contextualMessage,
+        previousResponseId
+      );
 
       console.log("OpenAI 응답 생성 완료:", response.responseId);
+
+      // OpenAI 응답 ID를 저장할 변수
+      let openaiResponseId = response.responseId;
 
       // 응답 아이템들을 순서대로 처리
       for (const item of response.items) {
@@ -246,15 +271,34 @@ export const useChatMessages = (sessionId?: string) => {
           try {
             console.log("이미지 생성 응답 처리 시작:", item.type, item.mime);
 
-            // base64 이미지를 Supabase Storage에 업로드
-            // PNG 파일로 명시적 처리
-            const imageUrl =
-              item.url ||
-              `data:${item.mime || "image/png"};base64,${item.base64}`;
+            // base64 데이터를 직접 Blob으로 변환하여 업로드
             const fileName = `ai-generated-${Date.now()}.png`;
 
-            console.log("이미지 업로드 시작:", fileName);
-            const uploadResult = await uploadImageFromUrl(imageUrl, fileName);
+            // base64 데이터를 Blob으로 변환
+            const base64Data = item.base64;
+            const mimeType = item.mime || "image/png";
+
+            // base64를 바이너리로 변환
+            const binaryString = atob(base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+
+            // Blob 생성
+            const blob = new Blob([bytes], { type: mimeType });
+            const file = new File([blob], fileName, { type: mimeType });
+
+            console.log(
+              "base64에서 File 객체 생성 완료:",
+              file.name,
+              file.size,
+              file.type
+            );
+
+            // Supabase Storage에 직접 업로드
+            console.log("Supabase Storage 업로드 시작...");
+            const uploadResult = await uploadFile(file, "png");
             console.log("이미지 업로드 성공:", uploadResult);
 
             // 이미지 응답 저장 (PNG 타입으로 명시)
@@ -264,6 +308,7 @@ export const useChatMessages = (sessionId?: string) => {
               type: "png", // PNG 타입 명시
               contents: "생성된 PNG 이미지",
               file_url: uploadResult.fileUrl, // Supabase Storage URL
+              openai_response_id: openaiResponseId, // OpenAI 응답 ID 저장
               created_at: new Date().toISOString(),
             });
 
@@ -299,6 +344,7 @@ export const useChatMessages = (sessionId?: string) => {
             role: "assistant",
             type: "text",
             contents: item.content,
+            openai_response_id: openaiResponseId, // OpenAI 응답 ID 저장
             created_at: new Date().toISOString(),
           });
 
@@ -460,21 +506,43 @@ export const useChatMessages = (sessionId?: string) => {
       // OpenAI에 메시지 전송 (첫 메시지이므로 채팅 기록 없음)
       const response = await sendMessageWithImages(userMessage);
 
+      // OpenAI 응답 ID를 저장할 변수
+      let openaiResponseId = response.responseId;
+
       // 응답 아이템들을 순서대로 처리
       for (const item of response.items) {
         if (item.type === "image") {
           try {
-            // base64 이미지를 Supabase Storage에 업로드
+            // base64 데이터를 직접 Blob으로 변환하여 업로드
             console.log("첫 응답 이미지 생성 처리 시작:", item.type, item.mime);
 
-            // PNG 파일로 명시적 처리
-            const imageUrl =
-              item.url ||
-              `data:${item.mime || "image/png"};base64,${item.base64}`;
             const fileName = `ai-generated-${Date.now()}.png`;
 
-            console.log("첫 응답 이미지 업로드 시작:", fileName);
-            const uploadResult = await uploadImageFromUrl(imageUrl, fileName);
+            // base64 데이터를 Blob으로 변환
+            const base64Data = item.base64;
+            const mimeType = item.mime || "image/png";
+
+            // base64를 바이너리로 변환
+            const binaryString = atob(base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+
+            // Blob 생성
+            const blob = new Blob([bytes], { type: mimeType });
+            const file = new File([blob], fileName, { type: mimeType });
+
+            console.log(
+              "첫 응답 base64에서 File 객체 생성 완료:",
+              file.name,
+              file.size,
+              file.type
+            );
+
+            // Supabase Storage에 직접 업로드
+            console.log("첫 응답 Supabase Storage 업로드 시작...");
+            const uploadResult = await uploadFile(file, "png");
             console.log("첫 응답 이미지 업로드 성공:", uploadResult);
 
             // 이미지 응답 저장 (PNG 타입으로 명시)
@@ -486,6 +554,7 @@ export const useChatMessages = (sessionId?: string) => {
                 type: "png", // PNG 타입 명시
                 contents: "생성된 PNG 이미지",
                 file_url: uploadResult.fileUrl, // Supabase Storage URL
+                openai_response_id: openaiResponseId, // OpenAI 응답 ID 저장
                 created_at: new Date().toISOString(),
               })
               .select()
@@ -549,6 +618,7 @@ export const useChatMessages = (sessionId?: string) => {
               role: "assistant",
               type: "text",
               contents: item.content,
+              openai_response_id: openaiResponseId, // OpenAI 응답 ID 저장
               created_at: new Date().toISOString(),
             })
             .select()
