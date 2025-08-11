@@ -208,23 +208,35 @@ export const useChatMessages = (sessionId?: string) => {
     mutationFn: async (userMessage: string) => {
       if (!sessionId) throw new Error("세션이 없습니다.");
 
-      // 이전 OpenAI 응답 ID를 찾기 위해 최근 메시지들 확인
-      // OpenAI API의 previous_response_id는 OpenAI가 생성한 응답 ID여야 함
-      // Supabase 메시지 ID가 아닌 OpenAI 응답 ID를 저장해야 함
-
-      // 현재는 OpenAI 응답 ID를 저장하지 않고 있으므로,
-      // 이전 응답과의 컨텍스트 연결을 위해 다른 방법 사용
-      let previousResponseId: string | undefined;
-
-      // TODO: OpenAI 응답 ID를 메시지에 저장하는 방식으로 개선 필요
-      // 현재는 이전 응답 ID 없이 새로운 요청으로 처리
-      console.log(
-        "OpenAI 응답 ID 저장 방식 개선 필요 - 현재는 컨텍스트 없이 처리"
-      );
-
       // OpenAI에 메시지 전송 (이미지 생성 가능)
-      // 현재는 이전 응답 ID 없이 처리 (OpenAI 응답 ID 저장 방식 개선 후 연결 예정)
-      const response = await sendMessageWithImages(userMessage);
+      // 이전 대화 컨텍스트를 기억하기 위해 최근 메시지들을 포함하여 전송
+
+      // 최근 10개 사용자 메시지만 가져와서 컨텍스트 구성
+      const recentUserMessages = await supabase
+        .from("messages")
+        .select("contents")
+        .eq("session_id", sessionId)
+        .eq("role", "user")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      let contextualMessage = userMessage;
+
+      if (recentUserMessages.data && recentUserMessages.data.length > 0) {
+        // 최신 순서로 사용자 요청 히스토리 구성
+        const userRequestHistory = recentUserMessages.data
+          .map((msg, index) => `요청 ${index + 1}: ${msg.contents}`)
+          .join("\n");
+
+        contextualMessage = `사용자 요청 히스토리:\n${userRequestHistory}\n\n현재 요청: ${userMessage}`;
+
+        console.log(
+          "사용자 요청 히스토리 포함 메시지 구성:",
+          contextualMessage.substring(0, 200) + "..."
+        );
+      }
+
+      const response = await sendMessageWithImages(contextualMessage);
 
       console.log("OpenAI 응답 생성 완료:", response.responseId);
 

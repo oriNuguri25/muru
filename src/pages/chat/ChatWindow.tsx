@@ -374,7 +374,7 @@ const ChatWindow = ({
                   : "메시지를 입력하세요"
               }
               disabled={isGeneratingResponse || isUploadingFile}
-              className="flex-1 p-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-black"
+              className="flex-1 p-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 placeholder-gray-500"
             />
             <input
               ref={fileInputRef}
