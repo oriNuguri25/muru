@@ -3,7 +3,7 @@ import { MURU_PROMPT, IMAGE_SYSTEM_PROMPT } from "./prompts";
 
 // 브라우저에서 직접 호출할 거라면 CORS 대비 옵션 필요
 export const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  apiKey: import.meta.env.VITE_OPENAI_PNG_API_KEY,
   dangerouslyAllowBrowser: true,
 });
 
