@@ -152,10 +152,39 @@ const ChatWindow = ({
             <div className="mt-2">
               {message.type === "png" ? (
                 <div className="relative inline-block">
+                  {/* 디버깅 정보 (개발 환경에서만 표시) */}
+                  {import.meta.env.DEV && (
+                    <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-100 rounded">
+                      이미지 URL: {message.file_url}
+                    </div>
+                  )}
                   <img
                     src={message.file_url}
                     alt="업로드된 이미지"
                     className="max-w-full max-h-64 rounded-lg"
+                    onError={(e) => {
+                      console.error("이미지 로딩 실패:", message.file_url);
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+
+                      // base64 데이터가 있는지 확인
+                      if (
+                        message.file_url &&
+                        message.file_url.startsWith("data:")
+                      ) {
+                        console.log("base64 이미지 데이터가 있습니다");
+                      }
+
+                      // 에러 메시지 표시
+                      const errorDiv = document.createElement("div");
+                      errorDiv.className =
+                        "text-red-500 text-sm p-2 bg-red-50 rounded";
+                      errorDiv.textContent = "이미지를 불러올 수 없습니다.";
+                      target.parentNode?.appendChild(errorDiv);
+                    }}
+                    onLoad={() => {
+                      console.log("이미지 로딩 성공:", message.file_url);
+                    }}
                   />
                   <button
                     onClick={async () => {
@@ -241,18 +270,21 @@ const ChatWindow = ({
                   </div>
                   <div className="p-4 rounded-2xl bg-white border border-gray-200">
                     {isGeneratingImage ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                        <div
-                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.1s" }}
-                        ></div>
-                        <div
-                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.2s" }}
-                        ></div>
-                        <span className="text-sm text-gray-600 ml-2">
-                          이미지를 생성중입니다...
+                      <div className="flex items-center space-x-3">
+                        <div className="w-4 h-4 bg-purple-400 rounded-full animate-pulse"></div>
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                          <div
+                            className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.1s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-purple-600">
+                          🎨 이미지를 생성중입니다...
                         </span>
                       </div>
                     ) : (
@@ -266,6 +298,9 @@ const ChatWindow = ({
                           className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
                           style={{ animationDelay: "0.2s" }}
                         ></div>
+                        <span className="text-sm text-gray-600 ml-2">
+                          응답을 생성중입니다...
+                        </span>
                       </div>
                     )}
                   </div>
@@ -292,18 +327,21 @@ const ChatWindow = ({
                 </div>
                 <div className="p-4 rounded-2xl bg-white border border-gray-200">
                   {isGeneratingImage ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                      <span className="text-sm text-gray-600 ml-2">
-                        이미지를 생성중입니다...
+                    <div className="flex items-center space-x-3">
+                      <div className="w-4 h-4 bg-purple-400 rounded-full animate-pulse"></div>
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-medium text-purple-600">
+                        🎨 이미지를 생성중입니다...
                       </span>
                     </div>
                   ) : (
@@ -317,6 +355,9 @@ const ChatWindow = ({
                         className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
                         style={{ animationDelay: "0.2s" }}
                       ></div>
+                      <span className="text-sm text-gray-600 ml-2">
+                        응답을 생성중입니다...
+                      </span>
                     </div>
                   )}
                 </div>
