@@ -208,46 +208,95 @@ export const useChatMessages = (sessionId?: string) => {
     mutationFn: async (userMessage: string) => {
       if (!sessionId) throw new Error("세션이 없습니다.");
 
-      // OpenAI에 메시지 전송 (이미지 생성 가능)
-      const response = await sendMessageWithImages(userMessage);
+      // 이전 AI 응답 ID를 찾기 위해 최근 메시지들 확인
+      // 이미지 생성 요청이 포함된 AI 응답을 찾기 위해 contents도 함께 조회
+      const recentMessages = await supabase
+        .from("messages")
+        .select("id, role, type, contents")
+        .eq("session_id", sessionId)
+        .eq("role", "assistant")
+        .order("created_at", { ascending: false })
+        .limit(5); // 최근 5개 메시지 확인
+
+      let previousResponseId: string | undefined;
+      if (recentMessages.data && recentMessages.data.length > 0) {
+        // 이미지 생성 요청이 포함된 AI 응답을 찾기
+        for (const msg of recentMessages.data) {
+          if (
+            msg.contents &&
+            (msg.contents.includes("이대로 이미지를 만들까요") ||
+              msg.contents.includes("이대로 만들까요") ||
+              msg.contents.includes("네/수정") ||
+              msg.contents.includes("기본값으로 제작해드릴게요"))
+          ) {
+            previousResponseId = msg.id;
+            break;
+          }
+        }
+
+        // 이미지 생성 요청을 찾지 못했다면 가장 최근 AI 응답 사용
+        if (!previousResponseId) {
+          previousResponseId = recentMessages.data[0].id;
+        }
+      }
+
+      // OpenAI에 메시지 전송 (이미지 생성 가능, 이전 응답 ID와 함께)
+      const response = await sendMessageWithImages(
+        userMessage,
+        previousResponseId
+      );
 
       // 응답 아이템들을 순서대로 처리
       for (const item of response.items) {
         if (item.type === "image") {
           try {
-            // base64 이미지를 Supabase Storage에 업로드
-            const uploadResult = await uploadImageFromUrl(
-              item.url ||
-                `data:${item.mime || "image/png"};base64,${item.base64}`,
-              `ai-generated-${Date.now()}.png`
-            );
+            console.log("이미지 생성 응답 처리 시작:", item.type, item.mime);
 
-            // 이미지 응답 저장
+            // base64 이미지를 Supabase Storage에 업로드
+            // PNG 파일로 명시적 처리
+            const imageUrl =
+              item.url ||
+              `data:${item.mime || "image/png"};base64,${item.base64}`;
+            const fileName = `ai-generated-${Date.now()}.png`;
+
+            console.log("이미지 업로드 시작:", fileName);
+            const uploadResult = await uploadImageFromUrl(imageUrl, fileName);
+            console.log("이미지 업로드 성공:", uploadResult);
+
+            // 이미지 응답 저장 (PNG 타입으로 명시)
             const { error } = await supabase.from("messages").insert({
               session_id: sessionId,
               role: "assistant",
-              type: "png",
-              contents: "생성된 이미지",
-              file_url: uploadResult.fileUrl,
+              type: "png", // PNG 타입 명시
+              contents: "생성된 PNG 이미지",
+              file_url: uploadResult.fileUrl, // Supabase Storage URL
               created_at: new Date().toISOString(),
             });
 
             if (error) throw error;
+            console.log("이미지 메시지 저장 완료");
           } catch (uploadError) {
             console.error("이미지 업로드 실패:", uploadError);
-            // 업로드 실패 시 base64를 직접 저장
-            const { error } = await supabase.from("messages").insert({
-              session_id: sessionId,
-              role: "assistant",
-              type: "png",
-              contents: "생성된 이미지 (base64)",
-              file_url: `data:${item.mime || "image/png"};base64,${
-                item.base64
-              }`,
-              created_at: new Date().toISOString(),
-            });
 
-            if (error) throw error;
+            // 업로드 실패 시 base64를 직접 저장 (fallback)
+            try {
+              const { error } = await supabase.from("messages").insert({
+                session_id: sessionId,
+                role: "assistant",
+                type: "png", // PNG 타입 유지
+                contents: "생성된 PNG 이미지 (base64 fallback)",
+                file_url: `data:${item.mime || "image/png"};base64,${
+                  item.base64
+                }`,
+                created_at: new Date().toISOString(),
+              });
+
+              if (error) throw error;
+              console.log("base64 fallback 이미지 저장 완료");
+            } catch (fallbackError) {
+              console.error("fallback 이미지 저장도 실패:", fallbackError);
+              throw fallbackError;
+            }
           }
         } else if (item.type === "text") {
           // 텍스트 응답 저장
@@ -422,29 +471,34 @@ export const useChatMessages = (sessionId?: string) => {
         if (item.type === "image") {
           try {
             // base64 이미지를 Supabase Storage에 업로드
-            console.log("Supabase Storage 업로드 시작...");
-            const uploadResult = await uploadImageFromUrl(
-              item.url ||
-                `data:${item.mime || "image/png"};base64,${item.base64}`,
-              `ai-generated-${Date.now()}.png`
-            );
-            console.log("업로드 결과:", uploadResult);
+            console.log("첫 응답 이미지 생성 처리 시작:", item.type, item.mime);
 
-            // 이미지 응답 저장
+            // PNG 파일로 명시적 처리
+            const imageUrl =
+              item.url ||
+              `data:${item.mime || "image/png"};base64,${item.base64}`;
+            const fileName = `ai-generated-${Date.now()}.png`;
+
+            console.log("첫 응답 이미지 업로드 시작:", fileName);
+            const uploadResult = await uploadImageFromUrl(imageUrl, fileName);
+            console.log("첫 응답 이미지 업로드 성공:", uploadResult);
+
+            // 이미지 응답 저장 (PNG 타입으로 명시)
             const { data, error } = await supabase
               .from("messages")
               .insert({
                 session_id: sessionId,
                 role: "assistant",
-                type: "png",
-                contents: "생성된 이미지",
-                file_url: uploadResult.fileUrl,
+                type: "png", // PNG 타입 명시
+                contents: "생성된 PNG 이미지",
+                file_url: uploadResult.fileUrl, // Supabase Storage URL
                 created_at: new Date().toISOString(),
               })
               .select()
               .single();
 
             if (error) throw error;
+            console.log("첫 응답 이미지 메시지 저장 완료");
 
             // 세션의 updated_at 업데이트
             await supabase
@@ -454,33 +508,43 @@ export const useChatMessages = (sessionId?: string) => {
 
             return data as ChatMessage;
           } catch (uploadError) {
-            console.error("이미지 업로드 실패:", uploadError);
-            console.log("원본 URL로 저장 시도...");
-            // 업로드 실패 시 base64를 직접 저장
-            const { data, error } = await supabase
-              .from("messages")
-              .insert({
-                session_id: sessionId,
-                role: "assistant",
-                type: "png",
-                contents: "생성된 이미지 (base64)",
-                file_url: `data:${item.mime || "image/png"};base64,${
-                  item.base64
-                }`,
-                created_at: new Date().toISOString(),
-              })
-              .select()
-              .single();
+            console.error("첫 응답 이미지 업로드 실패:", uploadError);
+            console.log("첫 응답 base64 fallback 저장 시도...");
 
-            if (error) throw error;
+            // 업로드 실패 시 base64를 직접 저장 (fallback)
+            try {
+              const { data, error } = await supabase
+                .from("messages")
+                .insert({
+                  session_id: sessionId,
+                  role: "assistant",
+                  type: "png", // PNG 타입 유지
+                  contents: "생성된 PNG 이미지 (base64 fallback)",
+                  file_url: `data:${item.mime || "image/png"};base64,${
+                    item.base64
+                  }`,
+                  created_at: new Date().toISOString(),
+                })
+                .select()
+                .single();
 
-            // 세션의 updated_at 업데이트
-            await supabase
-              .from("sessions")
-              .update({ updated_at: new Date().toISOString() })
-              .eq("id", sessionId);
+              if (error) throw error;
+              console.log("첫 응답 base64 fallback 이미지 저장 완료");
 
-            return data as ChatMessage;
+              // 세션의 updated_at 업데이트
+              await supabase
+                .from("sessions")
+                .update({ updated_at: new Date().toISOString() })
+                .eq("id", sessionId);
+
+              return data as ChatMessage;
+            } catch (fallbackError) {
+              console.error(
+                "첫 응답 fallback 이미지 저장도 실패:",
+                fallbackError
+              );
+              throw fallbackError;
+            }
           }
         } else if (item.type === "text") {
           // 텍스트 응답 저장
