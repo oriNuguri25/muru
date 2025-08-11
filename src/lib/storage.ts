@@ -192,7 +192,7 @@ export const uploadImageUrlDirectly = async (
     // 고유한 파일명 생성 (타임스탬프 + 원본 파일명)
     const timestamp = Date.now();
     const finalFileName = `${timestamp}_${fileName}`;
-    const filePath = `gpt-generated/imgs/${finalFileName}`;
+    const filePath = `imgs/${finalFileName}`;
     console.log("파일 경로:", filePath);
 
     // Supabase에 URL 정보만 저장 (실제 파일은 업로드하지 않음)
@@ -226,7 +226,7 @@ export const uploadFile = async (
     // 고유한 파일명 생성 (타임스탬프 + 원본 파일명)
     const timestamp = Date.now();
     const fileName = `${timestamp}_${file.name}`;
-    const filePath = `gpt-generated/${folder}/${fileName}`;
+    const filePath = `${folder}/${fileName}`;
     console.log("파일 경로:", filePath);
 
     // Supabase Storage에 업로드

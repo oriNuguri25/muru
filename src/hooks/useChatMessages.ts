@@ -554,7 +554,7 @@ export const useChatMessages = (sessionId?: string) => {
                 type: "png", // PNG 타입 명시
                 contents: "생성된 PNG 이미지",
                 file_url: uploadResult.fileUrl, // Supabase Storage URL
-                openai_response_id: openaiResponseId, // OpenAI 응답 ID 저장
+                openai_responses_id: openaiResponseId, // OpenAI 응답 ID 저장
                 created_at: new Date().toISOString(),
               })
               .select()
